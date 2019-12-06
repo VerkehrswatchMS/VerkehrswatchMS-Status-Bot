@@ -1,0 +1,1 @@
+This Project is about a Twitter Bot, that is called 'VerkehrswatchMS'. It is reading the data of the parking Space system on the subpages of https://www.stadt-muenster.de/tiefbauamt/parkleitsystem/ and is translating this into single tweets every three hours.
