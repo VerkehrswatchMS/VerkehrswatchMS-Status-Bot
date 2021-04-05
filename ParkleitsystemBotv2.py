@@ -23,7 +23,7 @@ def getComparisson(freeSpots):
     spotSize = 12.5
     totalArea = freeSpots * spotSize
     comparissons = []
-    icehockeyfield = [1800, 'Eishocky-Spielfelder', 1]
+    icehockeyfield = [1800, 'Eishockey-Spielfelder', 1]
     comparissons.append(icehockeyfield)
     soccerfield = [7140 , 'Fußball-Spielfelder', 1]
     comparissons.append(soccerfield)
@@ -34,7 +34,7 @@ def getComparisson(freeSpots):
     bikespots = [2, 'Fahrradabstellplätze', 0]
     comparissons.append(bikespots)
     
-    comparrisonCount = getRandomNumber(0,len(comparissons))
+    comparrisonCount = getRandomNumber(0,len(comparissons)-1)
     singleComp = comparissons[comparrisonCount]
     factor = round(totalArea/int(singleComp[0]),singleComp[2])
     text = singleComp[1]
@@ -44,22 +44,30 @@ def getFreeAndTotalNumber():
     i = 0
     freeTotal = 0
     totalSpots = 0
+    generalResult = requests.get('https://www.stadt-muenster.de/tiefbauamt/parkleitsystem')
+    generalSoup = BeautifulSoup(generalResult.text, 'html.parser')
+    trInGeneralSoup = generalSoup.find_all('tr')    
     # connect with website
     while i<16:
         i = i+1
-        result = requests.get('https://www.stadt-muenster.de/tiefbauamt/parkleitsystem/detailseite/parkhaeuser/detailansicht/parkhaus/'+str(i)+'.html')        
-        if result.status_code != 200:
-            print("Request failed with status code: {:d}!".format(result.status_code), file=sys.stderr)            
-        else:
-            # get parking table
-            soup = BeautifulSoup(result.text, 'html.parser')
-            parking_table = soup.find('div', id='parkingStatus')
-            numbers = parking_table.find_all('strong')
-            free=numbers[0].text.strip()
-            total=numbers[1].text.strip()
-            freeTotal = freeTotal + int(free)
-            totalSpots = totalSpots + int (total)
-    
+        statusNotFree = trInGeneralSoup[i].find("td",class_="status notFree")
+        detailurl2=(trInGeneralSoup[i].find('a'))['href']
+        if statusNotFree != None:
+            statusNotFree = statusNotFree.text
+        if statusNotFree != 'geschlossen':
+            detailurl = 'https://www.stadt-muenster.de/'+detailurl2+'.html'
+            result = requests.get(detailurl)        
+            if result.status_code != 200:
+                print("Request failed with status code: {:d}!".format(result.status_code), file=sys.stderr)            
+            else:
+                # get parking table
+                soup = BeautifulSoup(result.text, 'html.parser')
+                parking_table = soup.find('div', id='parkingStatus')
+                numbers = parking_table.find_all('strong')
+                free=numbers[0].text.strip()
+                total=numbers[1].text.strip()
+                freeTotal = freeTotal + int(free)
+                totalSpots = totalSpots + int (total)
     return [freeTotal, totalSpots]
 
 
@@ -68,8 +76,10 @@ def main():
     numbers = getFreeAndTotalNumber()
     comp = getComparisson(numbers[0])
     message = 'In #Münster werden aktuell {} von {} Autoparkplätzen in der Innenstadt nicht genutzt. Das ist eine Flächenverschwendung von {} m² (ca. {} {}). #autostadt #msVerkehr'.format(numbers[0],numbers[1], comp[0], comp[1], comp[2])
-    sendTweet(message)
+    print(message)
+    #sendTweet(message)
     
 if __name__ == "__main__":    
     main()
+
 
