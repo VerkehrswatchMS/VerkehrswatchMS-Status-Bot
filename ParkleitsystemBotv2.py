@@ -76,8 +76,7 @@ def main():
     numbers = getFreeAndTotalNumber()
     comp = getComparisson(numbers[0])
     message = 'In #Münster werden aktuell {} von {} Autoparkplätzen in der Innenstadt nicht genutzt. Das ist eine Flächenverschwendung von {} m² (ca. {} {}). #autostadt #msVerkehr'.format(numbers[0],numbers[1], comp[0], comp[1], comp[2])
-    print(message)
-    #sendTweet(message)
+    sendTweet(message)
     
 if __name__ == "__main__":    
     main()
